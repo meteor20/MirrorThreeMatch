@@ -1,0 +1,508 @@
+@body-font-size: 14px;
+@body-font-family: PingFang SC, Arial, "Helvetica Neue", Helvetica, Tahoma, Lantinghei SC, "Lantinghei SC", STXihei, "华文细黑", "Microsoft YaHei", "微软雅黑", SimSun, "宋体", sans-serif;
+@body-font: @body-font-size @body-font-family;
+@body-font-weight: 400;
+@border-color: #E2E2E2;
+
+@sider-width: 260px;
+
+@btn-color: #E8615A;
+@hr-color: #FFA9A9;
+
+@link-color: #4A4A4A;
+@hover-color: #FF5656;
+@active-bg-color: #FEE;
+
+@header-bg: #FEE;
+
+@max-width: 1200px;
+
+html, body {
+  font        : @body-font;
+  font-weight : @body-font-weight;
+  overflow    : hidden;
+  height      : initial;
+  * {
+	font        : @body-font;
+	font-weight : @body-font-weight;
+  }
+}
+
+h1[align="center"] {
+  font-size : 20px !important;
+}
+
+.evl-btn {
+  display          : inline-block;
+  padding          : 10px 12px;
+  margin-bottom    : 0;
+  font-size        : 20px;
+  font-weight      : 400;
+  line-height      : 1.42857143;
+  text-align       : center;
+  white-space      : nowrap;
+  vertical-align   : middle;
+  touch-action     : manipulation;
+  cursor           : pointer;
+  user-select      : none;
+  border           : 1px solid transparent;
+  min-width        : 190px;
+  color            : #FFF;
+  background-color : #FF5B5B;
+  &:hover {
+	background : lighten(rgb(255, 91, 91), 5%);
+  }
+  &:focus {
+	outline : none;
+  }
+
+  &.clear-btn {
+	background : transparent;
+	border     : solid 1px #FA4848;
+	color      : #FA4848;
+	&:hover {
+	  color      : #FFF;
+	  background : #FA4848;
+	}
+  }
+  &.icon-btn {
+	min-width  : initial;
+	background : transparent;
+	color      : #4A4A4A;
+	&:hover {
+	  color      : #FFF;
+	  background : #FA4848;
+	}
+  }
+}
+
+.book {
+  height : initial;
+  .fa-align-justify:before {
+	content : "\f068" !important;
+  }
+  &.with-summary {
+	.fa-align-justify:before {
+	  content : "\f067" !important;
+	}
+  }
+  //目录导航
+  .book-summary {
+	color      : @link-color;
+	box-shadow : 0 1px 0 0 #E2E2E2;
+	background : #FFF;
+	position   : relative;
+	width      : 100%;
+	text-align : center;
+	border     : 0;
+	left       : 0 !important;
+
+	ul.summary {
+	  font-size   : 16px;
+	  line-height : 18px;
+	  text-align  : center;
+	  display     : block;
+	  position    : relative;
+	  //不换行
+	  overflow-x  : auto;
+	  white-space : nowrap;
+	  li {
+		display    : inline-block;
+		text-align : center;
+		> a {
+		  display : inline-block;
+		  padding : 16px 20px;
+		  color   : @link-color;
+
+		  > b {
+			display : none;
+		  }
+		  &:hover {
+			color : @hover-color;
+		  }
+		}
+
+		> span {
+		  > b {
+			display : none;
+		  }
+		  color        : #4A4A4A;
+		  padding-left : 36px;
+		  opacity      : 1;
+		  cursor       : default;
+		}
+
+		> ul {
+		  font-size   : 14px;
+		  line-height : 16px;
+		}
+		&.active {
+		  > a {
+			color : @hover-color;
+		  }
+		}
+	  }
+	}
+  }
+
+  .book-body {
+	position  : relative;
+	overflow  : hidden;
+	max-width : @max-width;
+	width     : 100%;
+	margin    : 0 auto;
+	left      : initial !important;
+
+	.body-inner {
+	  position : relative;
+	}
+
+	.book-header {
+	  display : none;
+	  h1 {
+		display : none;
+	  }
+	  > .btn {
+		font-size   : 18px;
+		height      : 40px;
+		line-height : 40px;
+		color       : @btn-color;
+		&:hover, &:visited, &:focus, &:active {
+		  color   : @hover-color;
+		  outline : none;
+		}
+		&.btn-atoc.no-atoc {
+		  display : none;
+		}
+	  }
+	}
+
+	.navigation {
+	  display : none;
+	}
+
+	.page-wrapper {
+	  padding : 0 30px 0 300px;
+	  &.no-atoc {
+		padding-left : 30px;
+	  }
+	  .page-inner {
+		margin    : 0;
+		padding   : 0;
+		max-width : initial;
+		section.normal {
+		  font-size     : @body-font-size;
+		  padding-top   : 10px;
+		  padding-left  : 20px;
+		  padding-right : 20px;
+		  color         : #333;
+		  h1 {
+			font-size   : 20px;
+			font-weight : 500;
+		  }
+		  h2 {
+			font-size   : 18px;
+			font-weight : 500;
+		  }
+		  h3 {
+			font-size   : 16px;
+			font-weight : 500;
+		  }
+
+		  hr {
+			height           : 1px;
+			background-color : @hr-color;
+		  }
+		  table {
+			display : block;
+			tr {
+			  word-break : break-all;
+			}
+		  }
+		  .download-link-wrap {
+			border    : solid 1px #E2E2E2;
+			padding   : 35px;
+			max-width : 300px;
+			float     : left;
+			margin    : 15px 15px 15px 0;
+			> .wrap-item {
+			  h1 {
+				margin : 0 auto 40px;
+			  }
+			  .evl-btn {
+				background-color : #FF5B5B;
+				color            : #FFF;
+				min-width        : inherit;
+				font-size        : 14px;
+				padding          : 6px 16px;
+				float            : right;
+				text-decoration  : none !important;
+				margin-top       : 15px;
+			  }
+
+			  > p {
+				margin      : 0;
+				font-size   : 16px;
+				line-height : 1.5;
+				color       : #4A4A4A;
+				&.help-info {
+				  font-size   : 14px;
+				  line-height : 1.2;
+				  color       : #878787;
+				}
+				&.space {
+				  margin-bottom : 30px;
+				}
+			  }
+			}
+			.sdk-beta-title {
+			  &:after {
+				display : table;
+				content : '';
+				width   : 0;
+				height  : 0;
+				clear   : both;
+			  }
+			  h1 {
+				float : left;
+			  }
+			  .sdk-beta-label {
+				float         : right;
+				margin-top    : -20px;
+				margin-right  : -20px;
+				background    : #2AB5FF;
+				color         : #FFF;
+				padding-left  : 5px;
+				padding-right : 5px;
+				font-size     : 12px !important;
+			  }
+			}
+		  }
+		}
+
+		//章节内导航
+		ul.atoc.evl-docs {
+		  width           : @sider-width;
+		  list-style-type : none;
+		  border          : solid 1px #E2E2E2;
+		  font-size       : 14px;
+		  line-height     : 1.8;
+		  padding         : 16px 0 24px 0;
+		  position        : absolute;
+		  left            : 30px;
+		  top             : 44px;
+		  overflow-y      : auto;
+		  z-index         : 9999;
+		  background      : #FFF;
+		  ul {
+			list-style-type : none;
+			padding-left    : 0;
+			a {
+			  padding-left : 40px;
+			}
+		  }
+		  a {
+			color           : black;
+			text-decoration : none;
+			padding         : 5px 28px;
+			display         : block;
+
+			&:hover, &:visited, &:focus, &:active {
+			  background-color : #E2E2E2;
+			  text-decoration  : none;
+			}
+		  }
+		}
+
+	  }
+	}
+
+  }
+}
+
+@media (max-width : 769px) {
+  .book.with-summary .book-body {
+	transform      : none;
+	padding-bottom : 25px;
+  }
+
+  .book {
+	padding : 0;
+	.book-summary {
+	  //min-height : 100px;
+	  //z-index    : 99999;
+	  //border     : solid 1px #E2E2E2;
+	  //display    : block;
+	  //position   : fixed;
+	  //top        : 70px;
+	  //bottom     : initial;
+	  //left       : 36px;
+	  //right      : 36px;
+	  //width      : initial;
+	  position : absolute;
+	  overflow : auto;
+	  left     : 0;
+	  height   : 54px;
+
+	  ul.summary {
+		//overflow : hidden;
+		//height   : 100%;
+		//position : relative;
+		//padding  : 30px;
+		padding : 10px 0;
+		li {
+		  > a {
+			padding : 7px 20px;
+			&:hover {
+			  color : @link-color;
+			}
+		  }
+
+		  //> ul {
+		  //float        : none;
+		  //padding-left : 0px;
+		  //}
+		  &.active {
+			a {
+			  color : @hover-color;
+			}
+		  }
+		}
+
+		//> li.chapter {
+		//  float : left;
+		//}
+	  }
+	}
+	&.with-summary {
+	  .book-summary {
+		//display : none;
+	  }
+	}
+
+	> .book-body {
+	  //margin-top : 72px;
+	  > .body-inner {
+		padding-top : 55px;
+		> .book-header {
+		  position   : fixed;
+		  left       : 0;
+		  right      : 0;
+		  top        : 0;
+		  //display    : block;
+		  background : @header-bg;
+		  height     : 40px;
+		  //隐藏
+		  display    : none;
+		}
+	  }
+
+	  .page-wrapper {
+		padding : 0px 10px;
+		&.no-atoc {
+		  padding-left : 10px;
+		}
+		.page-inner {
+		  margin : 0;
+		  section.normal {
+			padding-left  : 2px;
+			padding-right : 2px;
+		  }
+		  //章节内导航
+		  ul.atoc.evl-docs {
+			display    : none;
+			width      : initial;
+			top        : 70px;
+			left       : 36px;
+			max-height : 70%;
+		  }
+		}
+	  }
+	}
+	&.with-atoc {
+	  > .book-body {
+		.page-wrapper {
+		  .page-inner {
+			//章节内导航
+			ul.atoc.evl-docs {
+			  //display    : block;
+			  width      : initial;
+			  top        : 70px;
+			  left       : 36px;
+			  right      : 36px;
+			  position   : fixed;
+			  max-height : 70%;
+			}
+		  }
+		}
+	  }
+	}
+  }
+}
+
+code {
+  white-space : pre-wrap !important;
+}
+
+@media (min-width : 600px) {
+  .book.with-summary .book-body {
+  }
+}
+
+@media (max-width : 1240px) {
+
+}
+
+@media (max-width : 480px) {
+  .book {
+	.book-body {
+	  .page-wrapper {
+		.page-inner {
+		  section.normal {
+			.download-link-wrap {
+			  width     : 280px;
+			  position  : relative;
+			  left      : 50%;
+			  transform : translateX(-50%);
+			  margin    : 15px auto;
+			}
+		  }
+		}
+	  }
+	}
+  }
+
+}
+
+@font-face {
+  font-family : 'tapdb';
+  src         : url('../font/tapdb.eot?4cxogh');
+  src         : url('../font/tapdb.eot?4cxogh#iefix') format('embedded-opentype'),
+  url('../font/tapdb.ttf?4cxogh') format('truetype'),
+  url('../font/tapdb.woff?4cxogh') format('woff'),
+  url('../font/tapdb.svg?4cxogh#tapdb') format('svg');
+  font-weight : normal;
+  font-style  : normal;
+}
+
+[class^="tapdb-icon-"], [class*=" tapdb-icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family             : 'tapdb' !important;
+  font-style              : normal;
+  font-weight             : normal;
+  font-variant            : normal;
+  text-transform          : none;
+  line-height             : 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing  : antialiased;
+  -moz-osx-font-smoothing : grayscale;
+}
+
+.tapdb-icon-cocos:before {
+  content : "\e901";
+}
+
+.tapdb-icon-unity:before {
+  content : "\e900";
+}

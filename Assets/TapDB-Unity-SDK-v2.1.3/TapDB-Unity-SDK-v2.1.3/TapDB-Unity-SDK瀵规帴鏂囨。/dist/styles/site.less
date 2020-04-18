@@ -1,0 +1,353 @@
+//@body-font-size: 14px;
+//@body-font-family: Helvetica, Tahoma, Arial, Lantinghei SC, "Lantinghei SC", "Helvetica Neue", STXihei, "华文细黑", Heiti, "黑体", "Microsoft YaHei", "微软雅黑", SimSun, "宋体", sans-serif;
+//@body-font: @body-font-size @body-font-family;
+//
+//@border-color: #FAA;
+//
+//@sider-width: 248px;
+//
+//@btn-color: #E8615A;
+//@hr-color: #FFA9A9;
+//
+//@hover-color: #FF5656;
+//@active-bg-color: #FEE;
+//
+//@header-bg: #FEE;
+//
+//html, body {
+//  font : @body-font;
+//}
+//
+//h1[align="center"] {
+//  font-size : 20px !important;
+//}
+//
+//.evl-btn {
+//  display          : inline-block;
+//  padding          : 10px 12px;
+//  margin-bottom    : 0;
+//  font-size        : 20px;
+//  font-weight      : 400;
+//  line-height      : 1.42857143;
+//  text-align       : center;
+//  white-space      : nowrap;
+//  vertical-align   : middle;
+//  touch-action     : manipulation;
+//  cursor           : pointer;
+//  user-select      : none;
+//  border           : 1px solid transparent;
+//  min-width        : 190px;
+//  color            : #FFF;
+//  background-color : #FF5B5B;
+//  &:hover {
+//	background : lighten(rgb(255, 91, 91), 5%);
+//  }
+//  &:focus {
+//	outline : none;
+//  }
+//
+//  &.clear-btn {
+//	background : transparent;
+//	border     : solid 1px #FA4848;
+//	color      : #FA4848;
+//	&:hover {
+//	  color      : #FFF;
+//	  background : #FA4848;
+//	}
+//  }
+//  &.icon-btn {
+//	min-width  : initial;
+//	background : transparent;
+//	color      : #4A4A4A;
+//	&:hover {
+//	  color      : #FFF;
+//	  background : #FA4848;
+//	}
+//  }
+//}
+//
+//.book {
+//  .fa-align-justify:before {
+//	content : "\f068" !important;
+//  }
+//  &.with-summary {
+//	.fa-align-justify:before {
+//	  content : "\f067" !important;
+//	}
+//  }
+//
+//  //目录导航
+//  .book-summary {
+//	@link-color: #4A4A4A;
+//	width        : @sider-width;
+//	border-right : 1px solid @border-color;
+//	border-top   : 1px solid @border-color;
+//	color        : @link-color;
+//	background   : #FFF;
+//	//一直显示
+//	left         : 0;
+//
+//	ul.summary {
+//	  font-size   : 16px;
+//	  line-height : 18px;
+//
+//	  li {
+//		> a {
+//		  padding-left : 36px;
+//		  color        : @link-color;
+//
+//		  > b {
+//			display : none;
+//		  }
+//		  &:hover {
+//			color : @hover-color;
+//		  }
+//		}
+//
+//		> span {
+//		  > b {
+//			display : none;
+//		  }
+//		  color        : #4A4A4A;
+//		  padding-left : 36px;
+//		  opacity      : 1;
+//		  cursor       : default;
+//		}
+//
+//		> ul {
+//		  font-size   : 14px;
+//		  line-height : 16px;
+//		}
+//		&.active {
+//		  > a {
+//			color : @hover-color;
+//		  }
+//		}
+//	  }
+//	}
+//  }
+//
+//  .book-body {
+//	left : @sider-width;
+//	.book-header {
+//	  display : none;
+//	  h1 {
+//		display : none;
+//	  }
+//	  > .btn {
+//		font-size   : 18px;
+//		height      : 40px;
+//		line-height : 40px;
+//		color       : @btn-color;
+//		&:hover, &:visited, &:focus, &:active {
+//		  color   : @hover-color;
+//		  outline : none;
+//		}
+//		&.btn-atoc.no-atoc {
+//		  display : none;
+//		}
+//	  }
+//	}
+//
+//	.navigation {
+//	  display : none;
+//	}
+//
+//	.page-wrapper {
+//	  padding : 0 280px 0 30px;
+//	  &.no-atoc {
+//		padding-right : 30px;
+//	  }
+//	  .page-inner {
+//		margin    : 0;
+//		padding   : 0;
+//		max-width : initial;
+//		section.normal {
+//		  font-size : @body-font-size;
+//		  h1 {
+//			font-size : 20px;
+//		  }
+//		  h2 {
+//			font-size : 18px;
+//		  }
+//		  h3 {
+//			font-size : 16px;
+//		  }
+//
+//		  hr {
+//			height           : 1px;
+//			background-color : @hr-color;
+//		  }
+//
+//		  .download-link-wrap {
+//			border    : solid 1px #FAA;
+//			padding   : 35px;
+//			max-width : 300px;
+//			float     : left;
+//			margin    : 15px;
+//			> .wrap-item {
+//			  h1 {
+//				margin : 0 auto 40px;
+//			  }
+//			  .evl-btn {
+//				background-color : #FF5B5B;
+//				color            : #FFF;
+//				min-width        : inherit;
+//				font-size        : 14px;
+//				padding          : 6px 16px;
+//				float            : right;
+//				text-decoration  : none !important;
+//				margin-top       : 15px;
+//			  }
+//
+//			  > p {
+//				margin      : 0;
+//				font-size   : 16px;
+//				line-height : 1.5;
+//				color       : #4A4A4A;
+//				&.help-info {
+//				  font-size   : 14px;
+//				  line-height : 1.2;
+//				  color       : #878787;
+//				}
+//				&.space {
+//				  margin-bottom : 30px;
+//				}
+//			  }
+//			}
+//		  }
+//		}
+//
+//		//章节内导航
+//		ul.atoc.evl-docs {
+//		  width           : @sider-width;
+//		  list-style-type : none;
+//		  border          : solid 1px #FAA;
+//		  font-size       : 14px;
+//		  line-height     : 1.8;
+//		  padding         : 24px 21px;
+//		  position        : fixed;
+//		  right           : 36px;
+//		  top             : 0;
+//		  overflow-y      : auto;
+//		  z-index         : 9999;
+//		  background      : #FFF;
+//		  ul {
+//			list-style-type : none;
+//		  }
+//		  a {
+//			color           : black;
+//			text-decoration : none;
+//			&:hover, &:visited, &:focus, &:active {
+//			  text-decoration : none;
+//			}
+//		  }
+//		}
+//	  }
+//	}
+//
+//  }
+//}
+//
+//@media (max-width : 769px) {
+//  .book.with-summary .book-body {
+//	transform : none;
+//  }
+//
+//  .book {
+//	padding : 20px 36px;
+//	.book-summary {
+//	  min-height : 100px;
+//	  z-index    : 99999;
+//	  border     : 1px solid #FAA;
+//	  display    : block;
+//	  position   : fixed;
+//	  top        : 70px;
+//	  bottom     : initial;
+//	  left       : 36px;
+//	  right      : 36px;
+//	  width      : initial;
+//	  ul.summary {
+//		overflow : hidden;
+//		height   : 100%;
+//		position : relative;
+//		padding  : 30px;
+//		li {
+//		  > a {
+//			padding : 6px 31px;
+//		  }
+//		  > ul {
+//			float        : none;
+//			padding-left : 0px;
+//		  }
+//		}
+//
+//		> li.chapter {
+//		  float : left;
+//		}
+//	  }
+//	}
+//	&.with-summary {
+//	  .book-summary {
+//		display : none;
+//	  }
+//	}
+//
+//	> .book-body {
+//	  left       : 0 !important;
+//	  //margin-top : 72px;
+//	  margin-top : 0;
+//	  > .body-inner {
+//		padding-top : 72px;
+//		> .book-header {
+//		  position   : fixed;
+//		  left       : 0;
+//		  right      : 0;
+//		  //top        : 14px;
+//		  top        : 0;
+//		  display    : block;
+//		  background : @header-bg;
+//		  height     : 40px;
+//		}
+//	  }
+//
+//	  .page-wrapper {
+//		padding : 0px 30px;
+//		.page-inner {
+//		  margin : 0;
+//
+//		  //章节内导航
+//		  ul.atoc.evl-docs {
+//			display    : none;
+//			width      : initial;
+//			top        : 70px;
+//			left       : 36px;
+//			max-height : 70%;
+//		  }
+//		}
+//	  }
+//	}
+//	&.with-atoc {
+//	  > .book-body {
+//		.page-wrapper {
+//		  .page-inner {
+//			//章节内导航
+//			ul.atoc.evl-docs {
+//			  display : block;
+//			}
+//		  }
+//		}
+//	  }
+//	}
+//  }
+//}
+//
+//@media (min-width : 600px) {
+//  .book.with-summary .book-body {
+//	left : @sider-width;
+//  }
+//}
+//
+//@media (max-width : 1240px) {
+//
+//}

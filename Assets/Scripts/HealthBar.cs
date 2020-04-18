@@ -11,9 +11,12 @@ public class HealthBar : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+      if (GetComponent<Obstacle>())
         GetComponent<Obstacle>().OnTakeDamage +=UpdateHealthBar ;
+        if (GetComponent<Character >())
+            GetComponent<Character >().OnTakeDamage += UpdateHealthBar;
         if (hideImageInFullHealth)
-            fillImage.gameObject.SetActive(false);
+            healthBarPivot.gameObject.SetActive(false);
     }
 
     // Update is called once per frame
@@ -25,7 +28,7 @@ public class HealthBar : MonoBehaviour
     public void UpdateHealthBar(float ratio)
     {
         fillImage.fillAmount = ratio;
-        fillImage.gameObject.SetActive(true );
+        healthBarPivot.gameObject.SetActive(true );
         // healthBarPivot.gameObject.transform.LookAt(Camera.main .transform .position );
     }
 }

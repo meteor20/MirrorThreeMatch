@@ -2,30 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Portal1 : MonoBehaviour,IObstacle 
+public class Portal1 : Props ,IImmoveable 
 {
- public    IntVector2 position;
+    public int Aliance = 1;
 
-    // Start is called before the first frame update
-    void Start()
+    int CheckAliance(int index  )
     {
-        
-    }
+        if (PieceBoard.instance.portals[index].Aliance == Aliance )
+        {
+            return index ;
+        }
+        else
+        {
+            int indexNext = index +1;
+            if (indexNext > PieceBoard.instance.portals.Count * 3)
+                return -1;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+          return   CheckAliance(indexNext % PieceBoard.instance.portals.Count);
+        }
+      
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag != "Player")
             return;
+        PieceBoard.instance.audioSource.PlayOneShot(GetComponent <Piece >().DestroySound );
         Character character = other.GetComponent<Character >();
 
         PieceBoard.instance.portals.Remove(this );
-        int index = Random.Range(0, PieceBoard.instance.portals.Count );
+        int index = CheckAliance(Random.Range(0, PieceBoard.instance.portals.Count)) ;
+
+        if (index == -1)
+            return;
+
         PieceBoard.instance.pieceSlots[PieceBoard.instance.portals[index].position.x, PieceBoard.instance.portals[index].position.z].Piece.GetComponent<Collider>().enabled = false;
 
         PieceBoard.instance .pieceSlots[PieceBoard.instance.portals [index].position .x, PieceBoard.instance.portals[index ].position .z].Piece = PieceBoard.instance.pieceSlots[character .position.x, character .position.z].Piece;
@@ -43,11 +53,18 @@ public class Portal1 : MonoBehaviour,IObstacle
 
         if (PieceBoard.instance.pieceSlots[PieceBoard.instance.portals[index].position.x, PieceBoard.instance.portals[index].position.z].Piece.GetComponent<Character>().alliance == 0)
             PieceBoard.instance.pieceSlots[PieceBoard.instance.portals[index].position.x, PieceBoard.instance.portals[index].position.z].Piece.transform.LookAt(PieceBoard.instance.womma .transform.position);
-        //PlayState = PlayState.CharacterMove;
-        for (int i = 0; i < PieceBoard.instance.portals.Count  ; i++)
+   PieceBoard.instance .     PlayState = PlayState.FillPeiceState;
+        if (index==0)
         {
-            Destroy(PieceBoard.instance.portals[i].gameObject ,0.3f);
+            PieceBoard.instance.male.isCorrect = true;
         }
+        if (index == 1)
+        {
+            PieceBoard.instance.womma .isCorrect = true;
+        }
+        Destroy(PieceBoard.instance.portals[index].gameObject, 0.8f);
+
+        PieceBoard.instance.portals.Remove(PieceBoard.instance.portals[index]);
         Destroy(gameObject );
         Debug.LogWarning("eeeeeeeeee");
     }

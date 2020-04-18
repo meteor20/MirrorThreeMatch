@@ -10,6 +10,7 @@ public enum PlayState
     GameOver,
     ClearExcessPieceState,
     CanMovePieceState,
+    GameLose,
 }
 
 public class PieceBoard : MonoBehaviour
@@ -18,10 +19,12 @@ public class PieceBoard : MonoBehaviour
     public GameObject BoardCenterBarrier;
     public Material maleWorldMaterial;
     public Material wommaWorldMaterial;
+    public Material cannotFillMaterial;
     public Material notMoveMaterial;
     public Material canMoveMaterial;
     public GameObject pieceBound;
     public float speed = 10;
+    public List<Props> props = new List<Props>();
     public List<Portal1> portals = new List<Portal1>();
     public Obstacle[] obstacles;
     public PlayState PlayState = PlayState.FillPeiceState;
@@ -50,11 +53,13 @@ public class PieceBoard : MonoBehaviour
     bool canMove;
 
     private PieceSlot[] tempPieces = new PieceSlot[2];
+
+    public float sinceTouchTime;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-      
-        pieceBound = Instantiate(pieceBound, Vector3.up * 10, Quaternion.identity);
+        speed -= 3f;
+        pieceBound = Instantiate(pieceBound, Vector3.right  * 10, Quaternion.identity);
         Application.targetFrameRate = 30;
         // InitBoard();
         InitBoardAutoed();
@@ -67,32 +72,14 @@ public class PieceBoard : MonoBehaviour
         pieceSlots[womma.position.x, womma.position.z].Piece.Targetposition = pieceSlots[womma.position.x, womma.position.z].position;
         pieceSlots[womma.position.x, womma.position.z].Piece.transform.position = pieceSlots[womma.position.x, womma.position.z].transform.position;
 
-        GameObject obstaclesParent = GameObject.Find("Obstacles");
-        obstacles = obstaclesParent.GetComponentsInChildren<Obstacle >();
-        for (int i = 0; i < obstacles.Length; i++)
-        {
-            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece = obstacles[i].GetComponent<Piece>();
-            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece.slot = pieceSlots[obstacles[i].position.x, obstacles[i].position.z];
-            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece.Targetposition = pieceSlots[obstacles[i].position.x, obstacles[i].position.z].position;
-            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece.transform.position = pieceSlots[obstacles[i].position.x, obstacles[i].position.z].transform.position;
-
-        }
-
-        for (int i = 0; i < portals.Count; i++)
-        {
-            pieceSlots[portals[i].position.x, portals[i].position.z].Piece = portals[i].GetComponent<Piece>();
-            pieceSlots[portals[i].position.x, portals[i].position.z].Piece.slot = pieceSlots[portals[i].position.x, portals[i].position.z];
-            pieceSlots[portals[i].position.x, portals[i].position.z].Piece.Targetposition = pieceSlots[portals[i].position.x, portals[i].position.z].position;
-            pieceSlots[portals[i].position.x, portals[i].position.z].Piece.transform.position = pieceSlots[portals[i].position.x, portals[i].position.z].transform.position;
-
-        }
-
+        InitElementsPropsAndObstacle();
         FillInitPieces();
 
         instance = this;
         PlayState = PlayState.FillPeiceState;
         m_SinceExchangeTime = Time.time;
         canDestroy = true;
+        sinceTouchTime = Time.time;
     }
 
 
@@ -118,7 +105,7 @@ public class PieceBoard : MonoBehaviour
             renderer.material = notMoveMaterial;
         }
 
-        Debug.LogWarning(PlayState + "-" + male.isCorrect + "-" + womma.isCorrect);
+      //  Debug.LogWarning(PlayState + "-" + male.isCorrect + "-" + womma.isCorrect);
         if (Time.time - m_SinceMoveDelayStart > MoveDelayTime)
         {
             UpdatePiecePosition();
@@ -145,7 +132,7 @@ public class PieceBoard : MonoBehaviour
                 {
                     pieceBound.SetActive(true);
                     pieceBound.transform.position = piece.transform.position;
-                    if (piece.GetComponent<IObstacle>() == null && !PieceBoard.instance.selectPieces.Contains(piece) && selectPieces.Count < 2)
+                    if ((piece.GetComponent<IImmoveable>() == null|| piece.GetComponent<ICanInterationMove >() != null) && !PieceBoard.instance.selectPieces.Contains(piece) && selectPieces.Count < 2)
                     {
 
                         PieceBoard.instance.selectPieces.Add(piece);
@@ -155,60 +142,76 @@ public class PieceBoard : MonoBehaviour
         }
         if (Input.GetMouseButtonUp(0))
         {
-
+            
             if (selectPieces.Count > 1 && PlayState == PlayState.CanMovePieceState &&
                 (
               (Mathf.Abs(selectPieces[0].Targetposition.x - selectPieces[1].Targetposition.x) <= 1 &&
-                 Mathf.Abs(selectPieces[0].Targetposition.z - selectPieces[1].Targetposition.z) < 1)||
+                 Mathf.Abs(selectPieces[0].Targetposition.z - selectPieces[1].Targetposition.z) < 1) ||
                    (Mathf.Abs(selectPieces[0].Targetposition.x - selectPieces[1].Targetposition.x) < 1 &&
                  Mathf.Abs(selectPieces[0].Targetposition.z - selectPieces[1].Targetposition.z) <= 1)
-                ))
+                )
+                )
             {
 
                 pieceBound.SetActive(false);
 
                 audioSource.PlayOneShot(SweepSound);
                 ExchangePiece();
+               
                 //UpdatePiece();
                 //  CheckPiece();
             }
             else
             {
-            
+
                 selectPieces.Clear();
             }
         }
-        if (Time.time - m_SinceExchangeTime > 1 && PlayState == PlayState.ClearExcessPieceState)//&& canDestroy
+        if (Time.time - m_SinceExchangeTime > MoveDelayTime  && PlayState == PlayState.ClearExcessPieceState) //&& canDestroy
         {
             canDestroy = false;
             if (UpdatePiece())
             {
+                sinceTouchTime = Time.time;
                 SetPlayState(PlayState.CharacterMove);
             }
             else
             {
-                if (tempPieces[0] != null && tempPieces[1] != null)
+#if !UNITY_EDITOR
+ if (tempPieces[0] != null && tempPieces[1] != null)
                 {
                     Piece piece = tempPieces[0].Piece;
-                    // Destroy(piece .gameObject );
+                     //Destroy(piece .gameObject );
                     IntVector2 inte = tempPieces[0].Piece.Targetposition;
                     IntVector2 inte2 = tempPieces[1].Piece.Targetposition;
-                    //pieceSlots[tempPieces[0].position .x, tempPieces[0].position .z].Piece = pieceSlots[tempPieces[1].position .x, tempPieces[1].position .z].Piece;
-                    //pieceSlots[tempPieces[0].position.x, tempPieces[0].position.z].Piece.Targetposition = inte2;
-                    //pieceSlots[tempPieces[0].position.x, tempPieces[0].position.z].Piece.slot = tempPieces[1];
+                    pieceSlots[tempPieces[0].position .x, tempPieces[0].position .z].Piece = pieceSlots[tempPieces[1].position .x, tempPieces[1].position .z].Piece;
+                    pieceSlots[tempPieces[0].position.x, tempPieces[0].position.z].Piece.Targetposition = inte2;
+                    pieceSlots[tempPieces[0].position.x, tempPieces[0].position.z].Piece.slot = tempPieces[1];
 
                     tempPieces[0].Piece = tempPieces[1].Piece;
                     tempPieces[0].Piece.Targetposition = inte;
+                    if (tempPieces[0].Piece.GetComponent<Props>() != null)
+                    {
+                        tempPieces[0].Piece.GetComponent<Props>().position = inte;
+                    }
                     tempPieces[0].Piece.slot = tempPieces[0];
                     tempPieces[1].Piece = piece;
                     tempPieces[1].Piece.Targetposition = inte2;
+                    if (tempPieces[1].Piece.GetComponent<Props>() != null)
+                    {
+                        tempPieces[1].Piece.GetComponent<Props>().position = inte2 ;
+                    }
                     tempPieces[1].Piece.slot = tempPieces[1];
-                    //pieceSlots[tempPieces[1].position.x, tempPieces[1].position.z].Piece = piece;
-                    //pieceSlots[tempPieces[1].position.x, tempPieces[1].position.z].Piece.Targetposition = piece.Targetposition ;
-                    //pieceSlots[tempPieces[1].position.x, tempPieces[1].position.z].Piece.slot = piece.slot ;
+                    pieceSlots[tempPieces[1].position.x, tempPieces[1].position.z].Piece = piece;
+                    pieceSlots[tempPieces[1].position.x, tempPieces[1].position.z].Piece.Targetposition = piece.Targetposition ;
+                    pieceSlots[tempPieces[1].position.x, tempPieces[1].position.z].Piece.slot = piece.slot ;
                     Debug.LogError(">>>>>>>>>>>>>>>>>>");
                     tempPieces = new PieceSlot[2];
                 }
+#endif
+
+
+
 
                 if (!UpdateBoard())
                     SetPlayState(PlayState.CanMovePieceState);
@@ -224,20 +227,43 @@ public class PieceBoard : MonoBehaviour
         {
             UpdateBoard();
         }
-        else
-        {
-            //male.SetDestination(womma .transform );
-            //womma .SetDestination(male .transform);
-            //if (male.agent.pathStatus == UnityEngine.AI.NavMeshPathStatus.PathInvalid||
-            //    male.agent.pathStatus == UnityEngine.AI.NavMeshPathStatus.PathPartial )
-            //{
-            //    canMove = false;
-            //}
-        }
+
 
     }
 
+    private void InitElementsPropsAndObstacle()
+    {
+        GameObject obstaclesParent = GameObject.Find("Obstacles");
+        obstacles = obstaclesParent.GetComponentsInChildren<Obstacle>();
+        for (int i = 0; i < obstacles.Length; i++)
+        {
+            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece = obstacles[i].GetComponent<Piece>();
+            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece.slot = pieceSlots[obstacles[i].position.x, obstacles[i].position.z];
+            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece.Targetposition = pieceSlots[obstacles[i].position.x, obstacles[i].position.z].position;
+            pieceSlots[obstacles[i].position.x, obstacles[i].position.z].Piece.transform.position = pieceSlots[obstacles[i].position.x, obstacles[i].position.z].transform.position;
 
+        }
+
+        GameObject propsParent = GameObject.Find("Props");
+        if (propsParent == null)
+        { Debug.LogError("propos is null "); return; }
+        props.AddRange(propsParent.GetComponentsInChildren<Props>());
+
+        for (int i = 0; i < props.Count; i++)
+        {
+            pieceSlots[props[i].position.x, props[i].position.z].Piece = props[i].GetComponent<Piece>();
+            pieceSlots[props[i].position.x, props[i].position.z].Piece.slot = pieceSlots[props[i].position.x, props[i].position.z];
+            pieceSlots[props[i].position.x, props[i].position.z].Piece.Targetposition = pieceSlots[props[i].position.x, props[i].position.z].position;
+            pieceSlots[props[i].position.x, props[i].position.z].Piece.transform.position = pieceSlots[props[i].position.x, props[i].position.z].transform.position;
+
+            if (props[i].GetType() == typeof(Portal1))
+            {
+                portals.Add((Portal1)props[i]);
+            }
+        }
+
+
+    }
     void FillInitPieces()
     {
         for (int i = 0; i < topBoardWith; i++)
@@ -361,7 +387,7 @@ public class PieceBoard : MonoBehaviour
         }
         for (int i = 0; i < bottomBoardWith; i++)
         {
-            for (int j = 0; j <= bottomBoardHeight + 1; j++)
+            for (int j = 0; j <= bottomBoardHeight; j++)
             {
                 PieceSlot slot = Instantiate(emptyTopPiece);
                 slot.GetComponentInChildren<Renderer>().material = wommaWorldMaterial;
@@ -484,7 +510,7 @@ public class PieceBoard : MonoBehaviour
             for (int j = 1; j < topBoardHeight; j++)
             {
 
-                if (GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j + 1).Piece != null && GetPieceSlot(i, j + 1).Piece.GetComponent<IObstacle>() == null)
+                if (GetPieceSlot(i, j).canFillElement &&    GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j + 1).Piece != null && GetPieceSlot(i, j + 1).Piece.GetComponent<IImmoveable>() == null)
                 {
                     GetPieceSlot(i, j + 1).Piece.Targetposition = GetPieceSlot(i, j).position;
                     GetPieceSlot(i, j + 1).Piece.transform.SetParent(GetPieceSlot(i, j).transform);
@@ -493,14 +519,14 @@ public class PieceBoard : MonoBehaviour
                     GetPieceSlot(i, j + 1).Piece = null;
                     canFill = true;
                 }
-                else if (GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j + 1).Piece != null && GetPieceSlot(i, j + 1).Piece.GetComponent<IObstacle>() != null)
+                else if (GetPieceSlot(i, j).canFillElement && GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j + 1).Piece != null && GetPieceSlot(i, j + 1).Piece.GetComponent<IImmoveable>() != null)
                 {
                     int index = i - 1;
                     if (i == 0)
                     {
                         index = i + 1;
                     }
-                    if (GetPieceSlot(index, j + 1).Piece != null && GetPieceSlot(index, j + 1).Piece.GetComponent<IObstacle>() == null)
+                    if (GetPieceSlot(index, j + 1).Piece != null && GetPieceSlot(index, j + 1).Piece.GetComponent<IImmoveable>() == null)
                     {
                         GetPieceSlot(index, j + 1).Piece.Targetposition = GetPieceSlot(i, j).position;
                         GetPieceSlot(index, j + 1).Piece.transform.SetParent(GetPieceSlot(i, j).transform);
@@ -510,21 +536,13 @@ public class PieceBoard : MonoBehaviour
                         canFill = true;
                     }
                 }
-
-                //PieceSlot slot = Instantiate(emptyBottomPiece);
-                //pieceSlots[i, j] = slot;
-                //slot.transform.position = new Vector3(0.5f, 0, -0.5f) + new Vector3(i, 0, -j);
-                //if (pieceSlots [i,i ].Piece ==null )
-                //{
-                // pieces[Random.Range(0, pieces.Length)].gameObiect
-                //}
             }
         }
         for (int i = 0; i < bottomBoardWith; i++)
         {
             for (int j = -1; j > -bottomBoardHeight; j--)
             {
-                if (GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j - 1).Piece != null && GetPieceSlot(i, j - 1).Piece.GetComponent<IObstacle>() == null)
+                if (GetPieceSlot(i, j).canFillElement && GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j - 1).Piece != null && GetPieceSlot(i, j - 1).Piece.GetComponent<IImmoveable>() == null)
                 {
                     GetPieceSlot(i, j - 1).Piece.Targetposition = GetPieceSlot(i, j).position;
                     GetPieceSlot(i, j - 1).Piece.transform.SetParent(GetPieceSlot(i, j).transform);
@@ -533,14 +551,14 @@ public class PieceBoard : MonoBehaviour
                     GetPieceSlot(i, j - 1).Piece = null;
                     canFill = true;
                 }
-                else if (GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j - 1).Piece != null && GetPieceSlot(i, j - 1).Piece.GetComponent<IObstacle>() != null)
+                else if (GetPieceSlot(i, j).canFillElement && GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j - 1).Piece != null && GetPieceSlot(i, j - 1).Piece.GetComponent<IImmoveable>() != null)
                 {
                     int index = i - 1;
                     if (i == 0)
                     {
                         index = i + 1;
                     }
-                    if (GetPieceSlot(index, j - 1).Piece != null && GetPieceSlot(index, j - 1).Piece.GetComponent<IObstacle>() == null)
+                    if (GetPieceSlot(index, j - 1).Piece != null && GetPieceSlot(index, j - 1).Piece.GetComponent<IImmoveable>() == null)
                     {
                         GetPieceSlot(index, j - 1).Piece.Targetposition = GetPieceSlot(i, j).position;
                         GetPieceSlot(index, j - 1).Piece.transform.SetParent(GetPieceSlot(i, j).transform);
@@ -551,13 +569,6 @@ public class PieceBoard : MonoBehaviour
                     }
                 }
 
-                //PieceSlot slot = Instantiate(emptyBottomPiece);
-                //pieceSlots[i, j] = slot;
-                //slot.transform.position = new Vector3(0.5f, 0, -0.5f) + new Vector3(i, 0, -j);
-                //if (pieceSlots [i,i ].Piece ==null )
-                //{
-                // pieces[Random.Range(0, pieces.Length)].gameObiect
-                //}
             }
         }
 
@@ -567,26 +578,7 @@ public class PieceBoard : MonoBehaviour
 
         PlayState = PlayState.ClearExcessPieceState;
         m_SinceExchangeTime = Time.time;
-        //if (canDestroy)
-        //{
-        //    m_SinceExchangeTime = Time.time;
-        //    UpdatePiece();
-        //}
 
-        //for (int i = 0; i < bottomBoardWith ; i++)
-        //{
-        //    for (int j = -1; j > -bottomBoardHeight ; j--)
-        //    {
-        //        if (GetPieceSlot(i, j).Piece == null && GetPieceSlot(i, j - 1).Piece != null)
-        //        {
-        //            GetPieceSlot(i, j - 1).Piece.Targetposition = GetPieceSlot(i, j).position;
-        //            GetPieceSlot(i, j - 1).Piece.transform.SetParent(GetPieceSlot(i, j).transform);
-        //            GetPieceSlot(i, j).Piece = GetPieceSlot(i, j - 1).Piece;
-        //            GetPieceSlot(i, j - 1).Piece = null;
-        //        }
-
-        //    }
-        //}
         return canFill;
     }
 
@@ -597,7 +589,7 @@ public class PieceBoard : MonoBehaviour
         {
             for (int j = 1; j <= topBoardHeight; j++)
             {
-                if (GetPieceSlot(i, j).Piece != null && GetPieceSlot(i, j).Piece.GetComponent<IObstacle>() == null)
+                if (GetPieceSlot(i, j).Piece != null && (GetPieceSlot(i, j).Piece.GetComponent<IImmoveable>() == null|| GetPieceSlot(i, j).Piece.GetComponent<ICanInterationMove >() != null))
                 {
                     Vector3 tposition = GetPieceSlot(i, j).transform.position;// new Vector3(GetPieceSlot(i, j).Piece.Targetposition.x, 0, GetPieceSlot(i, j).Piece.Targetposition.z);
                     if (GetPieceSlot(i, j).Piece.transform.position != tposition)
@@ -612,7 +604,7 @@ public class PieceBoard : MonoBehaviour
                         }
                     }
                 }
-                //else if (GetPieceSlot(i, j).Piece != null && GetPieceSlot(i, j).Piece.GetComponent<IObstacle>() != null&&canMove )
+                //else if (GetPieceSlot(i, j).Piece != null && GetPieceSlot(i, j).Piece.GetComponent<IImmoveable>() != null&&canMove )
                 //{
                 //    Vector3 tposition = GetPieceSlot(i, j).transform.position;// new Vector3(GetPieceSlot(i, j).Piece.Targetposition.x, 0, GetPieceSlot(i, j).Piece.Targetposition.z);
                 //    if (GetPieceSlot(i, j).Piece.transform.position != tposition)
@@ -635,7 +627,7 @@ public class PieceBoard : MonoBehaviour
         {
             for (int j = -1; j >= -bottomBoardHeight; j--)
             {
-                if (GetPieceSlot(i, j).Piece != null && GetPieceSlot(i, j).Piece.GetComponent<IObstacle>() == null)//&& PlayState == PlayState.FillPeiceState
+                if (GetPieceSlot(i, j).Piece != null && (GetPieceSlot(i, j).Piece.GetComponent<IImmoveable>() == null || GetPieceSlot(i, j).Piece.GetComponent<ICanInterationMove>() != null))//&& PlayState == PlayState.FillPeiceState
                 {
                     Vector3 tposition = GetPieceSlot(i, j).transform.position;//new Vector3(GetPieceSlot(i, j).Piece.Targetposition.x, 0, GetPieceSlot(i, j).Piece.Targetposition.z);
                     if (GetPieceSlot(i, j).Piece.transform.position != tposition)
@@ -651,7 +643,7 @@ public class PieceBoard : MonoBehaviour
                         // canMove = false;
                     }
                 }
-                //else if (GetPieceSlot(i, j).Piece != null && GetPieceSlot(i, j).Piece.GetComponent<IObstacle>() != null&&canMove)
+                //else if (GetPieceSlot(i, j).Piece != null && GetPieceSlot(i, j).Piece.GetComponent<IImmoveable>() != null&&canMove)
                 //{
                 //    Vector3 tposition = GetPieceSlot(i, j).transform.position;//new Vector3(GetPieceSlot(i, j).Piece.Targetposition.x, 0, GetPieceSlot(i, j).Piece.Targetposition.z);
                 //    if (GetPieceSlot(i, j).Piece.transform.position != tposition)
@@ -681,9 +673,9 @@ public class PieceBoard : MonoBehaviour
 
         if (pieceSlots[male.position.x, male.position.z].Piece.transform.position != tposition)
         {
-            pieceSlots[male.position.x, male.position.z].Piece.transform.position = Vector3.Lerp(pieceSlots[male.position.x, male.position.z].Piece.transform.position, tposition, Time.deltaTime * speed);
+            pieceSlots[male.position.x, male.position.z].Piece.transform.position = Vector3.Lerp(pieceSlots[male.position.x, male.position.z].Piece.transform.position, tposition, Time.deltaTime * speed*0.6f);
             male.GetComponent<Animator>().SetBool("run", true);
-            pieceSlots[male.position.x, male.position.z].Piece.transform.LookAt(tposition , Vector3.up);
+            pieceSlots[male.position.x, male.position.z].Piece.transform.LookAt(tposition, Vector3.up);
 
             if (Vector3.Distance(pieceSlots[male.position.x, male.position.z].Piece.transform.position, tposition) < 0.01f)
             {
@@ -706,7 +698,7 @@ public class PieceBoard : MonoBehaviour
                         return;
                         //Time.timeScale = 0;
                     }
-                    pieceSlots[male .position.x, male .position.z].Piece.transform.LookAt(pieceSlots[womma .position.x, womma  .position.z].Piece.transform, Vector3.up);
+                    pieceSlots[male.position.x, male.position.z].Piece.transform.LookAt(pieceSlots[womma.position.x, womma.position.z].Piece.transform, Vector3.up);
 
                     male.isCorrect = true;
                 }
@@ -775,33 +767,6 @@ public class PieceBoard : MonoBehaviour
                 canDestroy = true;
             }
         }
-
-
-
-
-        //if (moveStop )
-        //{
-        //    hasStop = true;
-        //    // Debug.LogError("kkkkkk"+ MoveCharacter());
-        //    bool h = MoveCharacter();
-        //    if (h)
-        //    {
-
-        //        Debug.LogError("fhuirghoiraeghp;i");
-        //        moveStop = false;
-        //        hasStop = false;
-        //       PlayState = PlayState.CharacterMove;
-        //        // hasStop = false ;
-        //    }
-        //    if (!h)
-        //    {
-
-        //        Debug.LogError("LLLLLL");
-        //        //  hasStop = true;
-        //        PlayState = PlayState.FillPeiceState;
-        //    }
-        //    Debug.LogError("YYYYY");
-        //}
     }
 
 
@@ -885,10 +850,10 @@ public class PieceBoard : MonoBehaviour
                     index--;
                     if (pieceSlots[index, j].Piece == null || sampleSlot.Piece == null)
                     {
-                        Debug.LogError(pieceSlots[index, j].position.x + "-" + pieceSlots[index, j].position.z);
-                        Debug.LogError(sampleSlot.position.x + "-" + sampleSlot.position.z);
+                        //Debug.LogError(pieceSlots[index, j].position.x + "-" + pieceSlots[index, j].position.z);
+                        //Debug.LogError(sampleSlot.position.x + "-" + sampleSlot.position.z);
                     }
-                    if (sampleSlot.Piece != null && sampleSlot.Piece.GetComponent<IObstacle>() == null && pieceSlots[index, j].Piece != null && pieceSlots[index, j].Piece.PieceType == sampleSlot.Piece.PieceType)
+                    if (sampleSlot.Piece != null && sampleSlot.Piece.GetComponent<IImmoveable>() == null && pieceSlots[index, j].Piece != null && pieceSlots[index, j].Piece.PieceType == sampleSlot.Piece.PieceType)
                     {
                         pieces.Add(pieceSlots[index, j].Piece);
                     }
@@ -927,10 +892,10 @@ public class PieceBoard : MonoBehaviour
                     index--;
                     if (pieceSlots[i, index].Piece == null || sampleSlot.Piece == null)
                     {
-                        Debug.LogError(pieceSlots[i, index].position.x + "-" + pieceSlots[i, index].position.z);
-                        Debug.LogError(sampleSlot.position.x + "-" + sampleSlot.position.z);
+                        //Debug.LogError(pieceSlots[i, index].position.x + "-" + pieceSlots[i, index].position.z);
+                        //Debug.LogError(sampleSlot.position.x + "-" + sampleSlot.position.z);
                     }
-                    if (sampleSlot.Piece != null && sampleSlot.Piece.GetComponent<IObstacle>() == null && pieceSlots[i, index].Piece != null && pieceSlots[i, index].Piece.PieceType == sampleSlot.Piece.PieceType)
+                    if (sampleSlot.Piece != null && sampleSlot.Piece.GetComponent<IImmoveable>() == null && pieceSlots[i, index].Piece != null && pieceSlots[i, index].Piece.PieceType == sampleSlot.Piece.PieceType)
                     {
                         pieces.Add(pieceSlots[i, index].Piece);
                     }
@@ -973,7 +938,6 @@ public class PieceBoard : MonoBehaviour
         }
         else
         {
-
             needClear = false;
         }
 
@@ -1009,40 +973,35 @@ public class PieceBoard : MonoBehaviour
                 int indexX = selectPieces[i].slot.position.x;
                 int indexY = selectPieces[i].slot.position.z;
                 Piece piece = GetNeighbourPiece(-1, 0, selectPieces[i].slot);
-                if (piece != null && piece.GetComponent<Obstacle>() != null&& piece.GetComponent<Obstacle>().TakeDamage ())
+                if (piece != null && piece.GetComponent<Obstacle>() != null && piece.GetComponent<Obstacle>().TakeDamage())
                 {
-                    Debug.LogError("DDDDDD");
-                    Destroy(Instantiate(piece.DestroyVFX, piece.transform.position, Quaternion.identity), 1f);
+                    piece.GetComponent<Obstacle>().Death();
+                    Debug.LogError("destroy obstacle ");
                     audioSource.PlayOneShot(piece.DestroySound);
-                    Destroy(piece.GetComponent<Obstacle>().gameObject);
                     pieceSlots[indexX - 1, indexY].Piece = null;
                 }
                 piece = GetNeighbourPiece(1, 0, selectPieces[i].slot);
                 if (piece != null && piece.GetComponent<Obstacle>() != null && piece.GetComponent<Obstacle>().TakeDamage())
                 {
-                    Debug.LogError("DDDDDD");
-                    Destroy(Instantiate(piece.DestroyVFX, piece.transform.position, Quaternion.identity), 1f);
-
+                    piece.GetComponent<Obstacle>().Death();
+                    Debug.LogError("destroy obstacle ");
                     audioSource.PlayOneShot(piece.DestroySound);
-                    Destroy(piece.GetComponent<Obstacle>().gameObject);
                     pieceSlots[indexX + 1, indexY].Piece = null;
                 }
                 piece = GetNeighbourPiece(0, -1, selectPieces[i].slot);
                 if (piece != null && piece.GetComponent<Obstacle>() != null && piece.GetComponent<Obstacle>().TakeDamage())
                 {
-                    Debug.LogError("DDDDDD");
-                    Destroy(Instantiate(piece.DestroyVFX, piece.transform.position, Quaternion.identity), 1f);
+                    piece.GetComponent<Obstacle>().Death();
+                    Debug.LogError("destroy obstacle ");
                     audioSource.PlayOneShot(piece.DestroySound);
-                    Destroy(piece.GetComponent<Obstacle>().gameObject);
                     pieceSlots[indexX, indexY - 1].Piece = null;
                 }
                 piece = GetNeighbourPiece(0, 1, selectPieces[i].slot);
                 if (piece != null && piece.GetComponent<Obstacle>() != null && piece.GetComponent<Obstacle>().TakeDamage())
                 {
-                    Debug.LogError("DDDDDD");
-                    Destroy(Instantiate(piece.DestroyVFX, piece.transform.position, Quaternion.identity), 1f);
+                    piece.GetComponent<Obstacle>().Death();
+                    Debug.LogError("destroy obstacle ");
                     audioSource.PlayOneShot(piece.DestroySound);
-                    Destroy(piece.GetComponent<Obstacle>().gameObject);
                     pieceSlots[indexX, indexY + 1].Piece = null;
                 }
                 //  Debug.LogError("ddd");
@@ -1059,8 +1018,12 @@ public class PieceBoard : MonoBehaviour
             if (selectPieces[i].slot.Piece != null)
             {
                 GameObject gameObject = selectPieces[i].slot.Piece.gameObject;
-                if (selectPieces[i].slot.Piece.DestroyVFX != null)
-                    Destroy(Instantiate(selectPieces[i].slot.Piece.DestroyVFX, selectPieces[i].slot.Piece.transform.position, Quaternion.identity), 2);
+                if (selectPieces[i].slot.Piece.DestroyVFX != null) {
+                    GameObject DesVFX = Instantiate(selectPieces[i].slot.Piece.DestroyVFX, selectPieces[i].slot.Piece.transform.position, Quaternion.identity);
+              
+                    Destroy(DesVFX, 2.5f);
+                }
+                   if(selectPieces[i].slot.Piece.DestroySound)
                 audioSource.PlayOneShot(selectPieces[i].slot.Piece.DestroySound);
                 selectPieces[i].slot.Piece = null;
                 //selectPieces.RemoveAt(0);
@@ -1089,8 +1052,13 @@ public class PieceBoard : MonoBehaviour
         Piece tp = firstSlot.Piece;
         firstSlot.Piece = secondPiece;
         firstSlot.Piece.Targetposition = firstSlot.position;
+        if (firstSlot.Piece.GetComponent<Props>() != null)
+            firstSlot.Piece.GetComponent<Props>().position = firstSlot.position;
+
         secondSlot.Piece = tp;
         secondSlot.Piece.Targetposition = secondSlot.position;
+        if (secondSlot .Piece.GetComponent<Props>() != null)
+            secondSlot.Piece.GetComponent<Props>().position = secondSlot .position;
         //PieceSlot t = secondSlot;
         firstSlot.Piece.slot = firstSlot;
         secondSlot.Piece.slot = secondSlot;
@@ -1119,7 +1087,7 @@ public class PieceBoard : MonoBehaviour
         if (indexX >= 0)
         {
 
-            if (pieceSlots[indexX, male.position.z].Piece == null && Vector3.Distance(pieceSlots[indexX, male.position.z].transform.position, womma.transform.position) < closestDistance)
+            if ((pieceSlots[indexX, male.position.z].Piece == null|| pieceSlots[indexX, male.position.z].Piece.GetComponent <Props >()&& pieceSlots[indexX, male.position.z].Piece.GetComponent<Obstacle >()==null ) && Vector3.Distance(pieceSlots[indexX, male.position.z].transform.position, womma.transform.position) < closestDistance)
             {
                 closestPiece = pieceSlots[indexX, male.position.z];
                 intVector2.x = indexX;
@@ -1136,7 +1104,7 @@ public class PieceBoard : MonoBehaviour
         if (indexX < topBoardWith)
         {
 
-            if (pieceSlots[indexX, male.position.z].Piece == null && Vector3.Distance(pieceSlots[indexX, male.position.z].transform.position, womma.transform.position) < closestDistance)
+            if ((pieceSlots[indexX, male.position.z].Piece == null|| pieceSlots[indexX, male.position.z].Piece.GetComponent<Props>()&& pieceSlots[indexX, male.position.z].Piece.GetComponent<Obstacle >()==null ) && Vector3.Distance(pieceSlots[indexX, male.position.z].transform.position, womma.transform.position) < closestDistance)
             {
                 closestPiece = pieceSlots[indexX, male.position.z];
                 intVector2.x = indexX;
@@ -1153,7 +1121,7 @@ public class PieceBoard : MonoBehaviour
         if (indexY > topBoardHeight)
         {
 
-            if (pieceSlots[male.position.x, indexY].Piece == null && Vector3.Distance(pieceSlots[male.position.x, indexY].transform.position, womma.transform.position) < closestDistance)
+            if ((pieceSlots[male.position.x, indexY].Piece == null||pieceSlots[male.position.x, indexY].Piece.GetComponent <Props >()&& pieceSlots[male.position.x, indexY].Piece.GetComponent<Obstacle >()==null ) && Vector3.Distance(pieceSlots[male.position.x, indexY].transform.position, womma.transform.position) < closestDistance)
             {
                 closestPiece = pieceSlots[male.position.x, indexY];
                 intVector2.x = male.position.x;
@@ -1171,7 +1139,7 @@ public class PieceBoard : MonoBehaviour
         if (indexY <= topBoardHeight + bottomBoardHeight + 1)
         {
 
-            if (pieceSlots[male.position.x, indexY].Piece == null && Vector3.Distance(pieceSlots[male.position.x, indexY].transform.position, womma.transform.position) < closestDistance)
+            if ((pieceSlots[male.position.x, indexY].Piece == null || pieceSlots[male.position.x, indexY].Piece.GetComponent<Props>()&& pieceSlots[male.position.x, indexY].Piece.GetComponent<Obstacle >()==null ) && Vector3.Distance(pieceSlots[male.position.x, indexY].transform.position, womma.transform.position) < closestDistance)
             {
                 closestPiece = pieceSlots[male.position.x, indexY];
                 intVector2.x = male.position.x;
@@ -1301,7 +1269,8 @@ public class PieceBoard : MonoBehaviour
         if (indexX >= 0)
         {
 
-            if (pieceSlots[indexX, womma.position.z].Piece == null && Vector3.Distance(pieceSlots[indexX, womma.position.z].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
+            if (((pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Props>() != null&& pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Obstacle >() == null) 
+                || pieceSlots[indexX, womma.position.z].Piece == null) && Vector3.Distance(pieceSlots[indexX, womma.position.z].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
             {
 
                 intVector2.x = indexX;
@@ -1314,7 +1283,8 @@ public class PieceBoard : MonoBehaviour
         if (indexX < topBoardWith)
         {
 
-            if (pieceSlots[indexX, womma.position.z].Piece == null && Vector3.Distance(pieceSlots[indexX, womma.position.z].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
+            if (((pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Props>() && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Obstacle >()==null ) 
+                || pieceSlots[indexX, womma.position.z].Piece == null) && Vector3.Distance(pieceSlots[indexX, womma.position.z].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
             {
 
                 intVector2.x = indexX;
@@ -1326,7 +1296,8 @@ public class PieceBoard : MonoBehaviour
         if (indexY > 0)
         {
 
-            if (pieceSlots[womma.position.x, indexY].Piece == null && Vector3.Distance(pieceSlots[womma.position.x, indexY].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
+            if (((pieceSlots[womma.position.x, indexY].Piece != null && pieceSlots[womma.position.x, indexY].Piece.GetComponent<Props>()&&pieceSlots[womma.position.x, indexY].Piece.GetComponent<Obstacle >() ==null  )
+                || pieceSlots[womma.position.x, indexY].Piece == null) && Vector3.Distance(pieceSlots[womma.position.x, indexY].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
             {
 
                 intVector2.x = womma.position.x;
@@ -1339,7 +1310,7 @@ public class PieceBoard : MonoBehaviour
         if (indexY <= topBoardHeight)
         {
 
-            if (pieceSlots[womma.position.x, indexY].Piece == null && Vector3.Distance(pieceSlots[womma.position.x, indexY].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
+            if (((pieceSlots[womma.position.x, indexY].Piece != null && pieceSlots[womma.position.x, indexY].Piece.GetComponent<Props>()&& pieceSlots[womma.position.x, indexY].Piece.GetComponent<Obstacle >()==null ) || pieceSlots[womma.position.x, indexY].Piece == null) && Vector3.Distance(pieceSlots[womma.position.x, indexY].transform.position, pieceSlots[v2.x, v2.z].transform.position) < closestDistance)
             {
 
                 intVector2.x = womma.position.x;
@@ -1355,52 +1326,52 @@ public class PieceBoard : MonoBehaviour
 
 
 
-        indexX = womma.position.x - 1;
-        if (indexX >= 0)
-        {
-            //  //检测传送门
-            if (pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Portal1>() != null)
-            {
-                intVector2.x = indexX;
-                intVector2.z = womma.position.z;
-            }
+        //indexX = womma.position.x - 1;
+        //if (indexX >= 0)
+        //{
+        //    //  //检测传送门
+        //    if (pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Portal1>() != null)
+        //    {
+        //        intVector2.x = indexX;
+        //        intVector2.z = womma.position.z;
+        //    }
 
-        }
-        indexX = womma.position.x + 1;
-        if (indexX < topBoardWith)
-        {
-            //  //检测传送门
-            if (pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Portal1>() != null)
-            {
-                intVector2.x = indexX;
-                intVector2.z = womma.position.z;
-            }
-        }
-        indexY = womma.position.z - 1;
-        if (indexY > 0)
-        {
-            //  //检测传送门
-            if (pieceSlots[womma.position.x, indexY].Piece != null && pieceSlots[womma.position.x, indexY].Piece.GetComponent<Portal1>() != null)
-            {
-                intVector2.x = womma.position.x;
-                intVector2.z = indexY;
-            }
-        }
+        //}
+        //indexX = womma.position.x + 1;
+        //if (indexX < topBoardWith)
+        //{
+        //    //  //检测传送门
+        //    if (pieceSlots[indexX, womma.position.z].Piece != null && pieceSlots[indexX, womma.position.z].Piece.GetComponent<Portal1>() != null)
+        //    {
+        //        intVector2.x = indexX;
+        //        intVector2.z = womma.position.z;
+        //    }
+        //}
+        //indexY = womma.position.z - 1;
+        //if (indexY > 0)
+        //{
+        //    //  //检测传送门
+        //    if (pieceSlots[womma.position.x, indexY].Piece != null && pieceSlots[womma.position.x, indexY].Piece.GetComponent<Portal1>() != null)
+        //    {
+        //        intVector2.x = womma.position.x;
+        //        intVector2.z = indexY;
+        //    }
+        //}
 
-        indexY = womma.position.z + 1;
-        if (indexY <= topBoardHeight)
-        {
-            //  //检测传送门
-            if (pieceSlots[womma.position.x, indexY].Piece != null && pieceSlots[womma.position.x, indexY].Piece.GetComponent<Portal1>() != null)
-            {
-                intVector2.x = womma.position.x;
-                intVector2.z = indexY;
-            }
-        }
+        //indexY = womma.position.z + 1;
+        //if (indexY <= topBoardHeight)
+        //{
+        //    //  //检测传送门
+        //    if (pieceSlots[womma.position.x, indexY].Piece != null && pieceSlots[womma.position.x, indexY].Piece.GetComponent<Portal1>() != null)
+        //    {
+        //        intVector2.x = womma.position.x;
+        //        intVector2.z = indexY;
+        //    }
+        //}
 
 
 
-        if (pieceSlots[intVector2.x, intVector2.z].Piece == null &&
+        if (pieceSlots[intVector2.x, intVector2.z].Piece == null || (pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Props>() != null) &&
             pieceSlots[intVector2.x, intVector2.z].Piece != pieceSlots[womma.position.x, womma.position.z].Piece)//pieceSlots[intVector2.x, intVector2.z].Piece == null || pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Character>()==null 
         {
             pieceSlots[intVector2.x, intVector2.z].Piece = pieceSlots[womma.position.x, womma.position.z].Piece;
@@ -1412,33 +1383,18 @@ public class PieceBoard : MonoBehaviour
             PlayState = PlayState.CharacterMove;
             canMove1 = true;
         }
-        else if (pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Portal1>() != null)
-        {
-            //  pieceSlots[intVector2.x, intVector2.z].Piece = pieceSlots[womma.position.x, womma.position.z].Piece;
-            //  pieceSlots[womma.position.x, womma.position.z].Piece = null;
+        //else if (pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Portal1>() != null)
+        //{
+        //    pieceSlots[intVector2.x, intVector2.z].Piece = pieceSlots[womma.position.x, womma.position.z].Piece;
+        //    pieceSlots[womma.position.x, womma.position.z].Piece = null;
 
-            //pieceSlots[womma.position.x, womma.position.z].Piece.Targetposition = pieceSlots[intVector2.x, intVector2.z].position;
-
-            //pieceSlots[womma.position.x, womma.position.z].Piece.slot = pieceSlots[intVector2.x, intVector2.z];
-            //womma.position = intVector2;
-            ////pieceSlots[intVector2.x, intVector2.z].Piece.slot = pieceSlots[intVector2.x, intVector2.z];
-            ////pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Character>().position = intVector2;
-            //PlayState = PlayState.CharacterMove;
-            //canMove1 = true;
-
-
-
-
-            pieceSlots[intVector2.x, intVector2.z].Piece = pieceSlots[womma.position.x, womma.position.z].Piece;
-            pieceSlots[womma.position.x, womma.position.z].Piece = null;
-
-            pieceSlots[intVector2.x, intVector2.z].Piece.Targetposition = pieceSlots[intVector2.x, intVector2.z].position;
-            pieceSlots[intVector2.x, intVector2.z].Piece.slot = pieceSlots[intVector2.x, intVector2.z];
-            pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Character>().position = intVector2;
-            PlayState = PlayState.CharacterMove;
-            canMove1 = true;
-            Debug.LogWarning("wwwwwwwwwwwwwwwww");
-        }
+        //    pieceSlots[intVector2.x, intVector2.z].Piece.Targetposition = pieceSlots[intVector2.x, intVector2.z].position;
+        //    pieceSlots[intVector2.x, intVector2.z].Piece.slot = pieceSlots[intVector2.x, intVector2.z];
+        //    pieceSlots[intVector2.x, intVector2.z].Piece.GetComponent<Character>().position = intVector2;
+        //    PlayState = PlayState.CharacterMove;
+        //    canMove1 = true;
+        //    Debug.LogWarning("wwwwwwwwwwwwwwwww");
+        //}
 
 
         return canMove1;

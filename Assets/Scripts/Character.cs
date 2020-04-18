@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 
-public class Character : MonoBehaviour,IObstacle  
+public class Character : MonoBehaviour,IImmoveable  
 {
+    public float Health;
     public bool isCorrect;
     public int alliance;
     public IntVector2 position;
@@ -13,11 +14,15 @@ public class Character : MonoBehaviour,IObstacle
 
     public List<IntVector2> movePositions = new List<IntVector2>();
     public UnityAction unityAction;
+    public UnityAction<float> OnTakeDamage;
+    public float CurrentHealth { get; set; }
 
+    public UnityAction OnCharacterDeath;
     // Start is called before the first frame update
     void Start()
     {
         isCorrect = true;
+        CurrentHealth = Health;
     }
 
     // Update is called once per frame
@@ -40,7 +45,21 @@ public class Character : MonoBehaviour,IObstacle
            
         }
     }
+    public bool TakeDamage(int value = 1)
+    {
+        CurrentHealth  -= value;
+        OnTakeDamage?.Invoke(CurrentHealth / Health );
+        if (CurrentHealth > 0)
+        {
+            return false;
+        }
+        else
+        {
 
+            OnCharacterDeath?.Invoke();
+            return true;
+        }
+    }
 
     public void SetDestination(Transform transform)
     {

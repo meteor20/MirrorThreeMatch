@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class Obstacle : MonoBehaviour,IObstacle 
+public class Obstacle : MonoBehaviour,IImmoveable 
 {
     public IntVector2 position;
     public float healthValue=2;
     private float currentHealth;
     public UnityAction<float> OnTakeDamage;
     // Start is called before the first frame update
-    void Start()
+    public virtual  void Start()
     {
         currentHealth = healthValue;
     }
@@ -32,5 +32,12 @@ public class Obstacle : MonoBehaviour,IObstacle
         {
             return true ;
         }
+    }
+
+    public virtual  void Death()
+    {
+        Destroy(Instantiate(GetComponent <Piece >(). DestroyVFX,transform.position, Quaternion.identity), 1f);
+        Destroy(GetComponent<Obstacle>().gameObject);
+       
     }
 }

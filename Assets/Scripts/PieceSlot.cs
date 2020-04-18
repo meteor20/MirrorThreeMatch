@@ -6,6 +6,8 @@ public class PieceSlot : MonoBehaviour
 {
     public Piece Piece;
     public IntVector2 position;
+
+    public bool canFillElement=true ;
     // Start is called before the first frame update
     void Start()
     {

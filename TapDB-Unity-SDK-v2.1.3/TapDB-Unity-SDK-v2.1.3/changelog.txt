@@ -1,0 +1,108 @@
+v2.1.3(iOS2.1.1,Android2.1.3)-2020-2-10
+1.同步安卓修改，去掉内部默认使用的IMEI搜集。
+
+v2.1.2(iOS2.1.1,Android2.1.2)-2019-12-18
+1.安卓增加获取OAID，具体看OAID文件夹下文档
+
+v2.1.1-2019-11-27
+1.修复channel为空时可能造成自定义事件崩溃
+2.修复与旧版tapdb共存时可能造成的冲突
+
+v2.1.0-2019-09-04（9bd88fa2ba1487cc2ec27c41f6b6bf0493df8723）
+1.修改部分接口;去除部分已弃用接口
+2.优化接口的内部逻辑
+
+v1.6.4-2019-06-25 (eafe8a732e731ca16117a79ac1017758f899604b)
+	1.TapDB Windows SDK升级为0.0.3
+	2.解决Windows下动态加载SDK DLL时初始化不成功的问题
+
+v1.6.3-2019-06-24 (426e7683116a3909884ff57b78de4eb140fcea62)
+	1.TapDB Windows SDK升级为0.0.2
+	2.解决Windows下空字符串导致的Crash问题
+
+v1.6.2-2019-02-22 (01ebcb939f612e22f23fb56e5922dd3c1ce4f4fd)
+	1.TapDB iOS SDK升级为1.10.2
+	2.iOS取消对CoreTelephony.framework库的依赖，防止被禁止上架（开发者相关）
+	3.iOS取消获取用户运营商信息
+
+v1.6.1-2018-09-19 (01ebcb939f612e22f23fb56e5922dd3c1ce4f4fd)
+	1.TapDB iOS SDK升级为1.10.1
+	2.TapDB Android SDK升级为1.10.1
+	3.增加自定义事件功能
+
+v1.5.1-2018-09-04 (ae84ea471d7562604672c809665585e099b782b0)
+	1.增加TapDB Windows SDK，版本号为0.0.1
+
+v1.4.2-2018-05-09 (9544a54fb607a5bc4174e55e6f504e357255dfd8)
+	1.TapDB iOS SDK升级为1.9.2
+	2.TapDB Android SDK升级为1.9.2
+	3.增加一些数据发送，可支持设备白名单功能
+
+v1.4.1-2018-05-03 (9544a54fb607a5bc4174e55e6f504e357255dfd8)
+	1.TapDB iOS SDK升级为1.9.1
+	2.TapDB Android SDK升级为1.9.1
+	3.增加一些数据发送，完成更好的设备统计
+	4.Android优化网络使用
+	5.Android不再需要android.permission.READ_PHONE_STATE权限（开发者相关）
+
+v1.3.5-2018-02-24 (9544a54fb607a5bc4174e55e6f504e357255dfd8)
+	1.TapDB iOS SDK升级为1.7.1
+	2.去掉对InMobi、ADTracking第三方SDK的调用
+	3.修复无法获取网络状态的bug
+
+v1.3.4-2018-01-29 (9544a54fb607a5bc4174e55e6f504e357255dfd8)
+	1.TapDB iOS SDK升级为1.6.8
+	2.修改获取网络状态的方法，以免被苹果审核打回
+
+v1.3.3-2018-01-03 (9544a54fb607a5bc4174e55e6f504e357255dfd8)
+	1.TapDB Android SDK升级为1.8.4
+	2.TapDB iOS SDK升级为1.6.7
+	3.增加修改数据发送域名的接口（开发者相关）
+
+v1.3.2-2017-09-19 (afc4fbc3fa9f658afd9bd1eaee844ad02c404958)
+	1.TapDB Android SDK升级为1.8.2
+	2.TapDB iOS SDK升级为1.6.6
+	3.优化设备跟踪方式
+	4.Android修复某些设备上可能出现的极低概率的异常
+	5.iOS优化网络异常处理
+
+v1.3.1-2017-07-21 (afc4fbc3fa9f658afd9bd1eaee844ad02c404958)
+	1.TapDB Android SDK升级为1.8.1
+	2.TapDB iOS SDK升级为1.6.5
+	3.初始化接口中增加requestPermission参数，可由开发者控制Android上是否由TapDB SDK来申请可选权限，具体内容参见对接文档（开发者相关）
+	4.获取IMSI/ANID/AAID用作Android广告渠道追踪（新功能）
+	5.优化Android上Context的使用
+	6.修复Android上permissionRequestCode过大的问题
+
+v1.2.2-2017-05-15 (95797ddca8ecaee3af0d5e77362da515e7803ce0)
+	1.TapDB Android SDK升级为1.7.2
+	2.Android增加第三方unity3d ads sdk的支持
+
+v1.2.1-2017-04-20 (95797ddca8ecaee3af0d5e77362da515e7803ce0)
+	1.TapDB Android SDK升级为1.7.1
+	2.增加了用户权限确认回调接口，具体操作见文档的3.2（开发者相关）
+	3.删除了ACCESS_WIFI_STATE、READ_EXTERNAL_STORAGE权限，READ_PHONE_STATE、WRITE_EXTERNAL_STORAGE权限修改为可选，具体作用见文档的2.4（开发者相关）
+	4.现在需要添加Android support v4支持库（开发者相关）
+	5.获取IMEI用作Android广告渠道追踪（新功能）
+
+v1.1.4 (a144f78e6f3022b2f4a190a6ea16208acdfdef76)
+	1.修复Demo中的一个错误
+
+v1.1.3 (6785cc0bffa353a178a9b3cb5c86da465661f19f)
+	1.TapDB iOS SDK升级为v1.6.4
+	2.TapDB Android SDK升级为v1.6.2
+	3.使用https作为网络发送协议
+	4.增加SDK版本的日志输出
+	5.修复iOS发送失败重试等待时间无效的bug
+
+v1.1.2 (6785cc0bffa353a178a9b3cb5c86da465661f19f)
+	1.TapDB iOS SDK升级为v1.6.3
+	2.处理iOS 10上可能存在的网络不可用情况
+	3.修复一个日志中打印version不正确的bug
+
+v1.1.0 (6785cc0bffa353a178a9b3cb5c86da465661f19f)
+	1.封装了TapDB iOS&Android v1.6.1版的SDK
+	2.初始化接口中增加版本参数
+
+v1.0.0 (46291b938f77cd84e26229d524563f1058bdda3b)
+	1.封装了TapDB iOS&Android v1.5.6版的SDK
